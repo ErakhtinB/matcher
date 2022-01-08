@@ -1,0 +1,21 @@
+[package]
+name = "tradetech"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "matcher"
+path = "src/matcher.rs"
+
+[[bin]]
+name = "tradetech"
+path = "src/main.rs"
+
+[dependencies]
+criterion = "0.3"
+strum_macros = "0.23"
+strum = { version = "0.23", features = ["derive"] }
+
+[[bench]]
+name = "tradetech_benchmark"
+harness = false
