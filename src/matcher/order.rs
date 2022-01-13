@@ -1,8 +1,8 @@
 use uuid::Uuid;
 use std::hash::{Hash, Hasher};
 use strum::Display;
-
-#[derive(Display, Debug, Clone)]
+    
+#[derive(Display, Debug, Copy, Clone)]
 pub enum OrderType {
     Lim,
     Fok,
@@ -62,6 +62,10 @@ impl Order {
 
     pub fn current_qty(&self) -> u64 {
         return self.current_qty;
+    }
+
+    pub fn order_type(&self) -> OrderType {
+        return self.order_type;
     }
 
     pub fn reduce_quantity(&mut self, qty: u64) -> Option<u64> {
@@ -127,3 +131,4 @@ impl Hash for Order {
 }
 
 impl Eq for Order {}
+

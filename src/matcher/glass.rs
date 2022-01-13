@@ -1,6 +1,8 @@
+
 use priority_queue::PriorityQueue;
-use crate::order;
 use std::cmp::Ordering;
+
+use crate::matcher::order;
 
 #[derive(Eq, PartialEq)]
 struct PricePriority {
