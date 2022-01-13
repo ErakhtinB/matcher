@@ -15,11 +15,11 @@ pub enum Side {
 }
 #[derive(Display, Debug)]
 pub enum ExternalEvent {
+    Accepted,
     Queued,
 }
 #[derive(Display, Debug)]
 enum InternalEvent {
-    Accepted,
     Canceled,
     Executed,
     PartiallyExecuted,
@@ -38,11 +38,9 @@ pub struct Order {
 impl Order {
     pub fn new(_order_type: OrderType, _side : Side, _price : u64,
             _initial_qty : u64, _user_id : u64) -> Order {
-            let o = Order{ order_type: _order_type, side : _side,
-                price : _price, initial_qty : _initial_qty, current_qty : _initial_qty,
-                user_id : _user_id, internal_id : Uuid::new_v4()};
-            o.print_due_inernal_event(InternalEvent::Accepted);
-            o
+                Order{ order_type: _order_type, side : _side,
+                    price : _price, initial_qty : _initial_qty, current_qty : _initial_qty,
+                    user_id : _user_id, internal_id : Uuid::new_v4()}
     }
 }
 
@@ -66,6 +64,10 @@ impl Order {
 
     pub fn order_type(&self) -> OrderType {
         return self.order_type;
+    }
+
+    pub fn user_id(&self) -> u64 {
+        return self.user_id;
     }
 
     pub fn reduce_quantity(&mut self, qty: u64) -> Option<u64> {
