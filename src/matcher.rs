@@ -91,7 +91,7 @@ impl Matcher {
         }
         else {
             a = rhs.price();
-            b = lhs.price()
+            b = lhs.price();
         }
         if a >= b {
             return MatchResult::Ok;
