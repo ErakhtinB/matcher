@@ -33,12 +33,6 @@ pub struct Glass {
 }
 
 impl Glass {
-    pub fn new() -> Glass {
-        Glass{..Default::default()}
-    }
-}
-
-impl Glass {
     fn get_queue(&mut self, side: order::Side) -> &mut PriorityQueue<order::Order, PricePriority> {
         if side == order::Side::Buy {
             return &mut self.buy_queue;
@@ -63,14 +57,4 @@ impl Glass {
         q.push(o, PricePriority{price : price, side : side});
     }
 
-    pub fn reduce_top(&mut self, side : order::Side, qty : u64) {
-        let q = self.get_queue(side);
-        let res = q.pop();
-        if res.is_some() {
-            let (mut i, _p) = res.unwrap();
-            let price = i.price();
-            i.reduce_quantity(qty);
-            self.buy_queue.push(i, PricePriority{price : price, side : side});
-        }
-    }
 }

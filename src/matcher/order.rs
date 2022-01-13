@@ -2,7 +2,7 @@ use uuid::Uuid;
 use std::hash::{Hash, Hasher};
 use strum::Display;
     
-#[derive(Display, Debug, Copy, Clone)]
+#[derive(Display, Debug, Eq, PartialEq, Copy, Clone)]
 pub enum OrderType {
     Lim,
     Fok,
