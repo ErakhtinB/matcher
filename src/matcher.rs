@@ -28,7 +28,7 @@ impl Matcher {
         self.common_processing(o);
     }
 	fn process_fok(&mut self, o : order::Order) {
-        self.common_processing(o);
+        self.fok_processing(o);
     }
     fn opposite_side(&self, side : order::Side) -> order::Side {
         if side == order::Side::Buy {
@@ -106,6 +106,65 @@ impl Matcher {
                 break;
             }
             self.g.push(element.unwrap());
+        }
+        o
+    }
+    fn fok_processing(&mut self, mut o : order::Order) -> order::Order {
+        let mut orders_to_recover: VecDeque<order::Order> = VecDeque::new();
+        let o_side = self.opposite_side(o.side());
+        let mut pop_count = 0;
+        let mut number_to_reduce = 0;
+        loop {
+            let opposite_order = self.g.pop(o_side);
+            if opposite_order.is_none() {
+                break;
+            }
+            let opposite_order = opposite_order.unwrap();
+            match self.orders_match(&o, &opposite_order) {
+                MatchResult::Ok => {
+                        let order_current_qty = o.current_qty();
+                        let opposite_order_current_qty = opposite_order.current_qty();
+                        if order_current_qty > opposite_order_current_qty {
+                            o.reduce_quantity(opposite_order_current_qty);
+                            pop_count = pop_count + 1;
+                            orders_to_recover.push_back(opposite_order);
+                        }
+                        else {
+                            if order_current_qty == opposite_order_current_qty {
+                                pop_count = pop_count + 1;
+                            } else {
+                                number_to_reduce = order_current_qty;
+                            }
+                            o.reduce_quantity(order_current_qty);
+                            orders_to_recover.push_back(opposite_order);
+                            break;
+                        }
+                    },
+                MatchResult::SameSide => panic!("Orders of the same side"),
+                MatchResult::SameUser => orders_to_recover.push_back(opposite_order),
+                MatchResult::Discrepancy => {
+                    orders_to_recover.push_back(opposite_order);
+                    break; // put opposite order back, break, queue order
+                },
+            }
+        }
+        loop {
+            let element = orders_to_recover.pop_back();
+            if element.is_none() {
+                break;
+            }
+            let mut element = element.unwrap();
+            if o.current_qty() == 0 {
+                if element.user_id() != o.user_id() {
+                    if pop_count != 0 {
+                        pop_count = pop_count - 1;
+                        continue;
+                    } else if number_to_reduce != 0 {
+                        element.reduce_quantity(number_to_reduce);
+                    }
+                }
+            }
+            self.g.push(element);
         }
         o
     }
