@@ -1,7 +1,7 @@
 use uuid::Uuid;
 use std::hash::{Hash, Hasher};
 use strum::Display;
-    
+
 #[derive(Display, Debug, Eq, PartialEq, Copy, Clone)]
 pub enum OrderType {
     Lim,
@@ -133,4 +133,3 @@ impl Hash for Order {
 }
 
 impl Eq for Order {}
-

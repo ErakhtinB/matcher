@@ -1,9 +1,7 @@
-pub mod matcher {
-
 use std::collections::VecDeque;
 
-mod order;
-mod glass;
+pub mod order;
+pub mod glass;
 
 #[derive(Default)]
 pub struct Matcher {
@@ -84,9 +82,6 @@ impl Matcher {
                         let opposite_order_current_qty = opposite_order.current_qty();
                         if order_current_qty > opposite_order_current_qty {
                             o.reduce_quantity(opposite_order_current_qty);
-                            if o.order_type() == order::OrderType::Fok {
-                                orders_to_recover.push_back(opposite_order);
-                            }
                         }
                         else {
                             opposite_order.reduce_quantity(order_current_qty);
@@ -110,18 +105,8 @@ impl Matcher {
             if element.is_none() {
                 break;
             }
-            let element = element.unwrap();
-            if o.order_type() == order::OrderType::Fok {
-                if o.current_qty() == 0 {
-                    if element.user_id() != o.user_id() {
-                        continue;
-                    }
-                }
-            }
-            self.g.push(element);
+            self.g.push(element.unwrap());
         }
         o
     }
-}
-
 }
