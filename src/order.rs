@@ -101,8 +101,7 @@ impl Drop for Order {
     fn drop(&mut self) {
         let const_self = &(*self);
         match const_self.order_type {
-            OrderType::Lim => const_self.print_due_inernal_event(InternalEvent::Executed),
-            OrderType::Ioc => if const_self.current_qty == 0 {
+            OrderType::Ioc | OrderType::Lim => if const_self.current_qty == 0 {
                 const_self.print_due_inernal_event(InternalEvent::Executed)
             }
             else if const_self.current_qty < const_self.initial_qty {

@@ -1,7 +1,6 @@
 extern crate matcher;
 extern crate csv;
 
-use matcher::order;
 use std::env;
 use csv::Reader;
 use std::error::Error;
