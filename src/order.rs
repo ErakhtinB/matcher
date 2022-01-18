@@ -2,13 +2,15 @@ use uuid::Uuid;
 use std::hash::{Hash, Hasher};
 use strum::Display;
 
-#[derive(Display, Debug, Eq, PartialEq, Copy, Clone)]
+use serde::Deserialize;
+
+#[derive(Display, Debug, Eq, PartialEq, Copy, Clone, Deserialize)]
 pub enum OrderType {
     Lim,
     Fok,
     Ioc,
 }
-#[derive(Display, Debug, Eq, PartialEq, Copy, Clone)]
+#[derive(Display, Debug, Eq, PartialEq, Copy, Clone, Deserialize)]
 pub enum Side {
     Buy,
     Sell,
@@ -26,21 +28,21 @@ enum InternalEvent {
 }
 #[derive(Debug)]
 pub struct Order {
+    internal_id: Uuid,
     order_type: OrderType,
     side: Side,
     price: u64,
     initial_qty: u64,
     current_qty: u64,
     user_id: u64,
-    internal_id: Uuid,
 }
 
 impl Order {
     pub fn new(_order_type: OrderType, _side : Side, _price : u64,
             _initial_qty : u64, _user_id : u64) -> Order {
-                Order{ order_type: _order_type, side : _side,
+                Order{internal_id : Uuid::new_v4(), order_type: _order_type, side : _side,
                     price : _price, initial_qty : _initial_qty, current_qty : _initial_qty,
-                    user_id : _user_id, internal_id : Uuid::new_v4()}
+                    user_id : _user_id}
     }
 }
 
@@ -86,13 +88,12 @@ impl Order {
     }
 
     fn print_order_info(&self) {
-        println!("{};{};{};{};{};{}",
+        println!("{},{},{},{},{}",
         self.order_type,
         self.side,
         self.price,
         self.initial_qty,
-        self.user_id,
-        self.internal_id);
+        self.user_id);
     }
 }
 

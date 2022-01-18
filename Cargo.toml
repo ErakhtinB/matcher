@@ -16,6 +16,8 @@ criterion = "0.3"
 strum = { version = "0.23", features = ["derive"] }
 priority-queue = "1.2.1"
 uuid = { version = "0.8", features = ["serde", "v4"] }
+csv = "1.1"
+serde = { version = "1", features = ["derive"] }
 
 [[bench]]
 name = "tradetech_benchmark"

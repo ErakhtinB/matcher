@@ -17,6 +17,12 @@ enum MatchResult {
 }
 
 impl Matcher {
+    pub fn new() -> Matcher {
+        Matcher{..Default::default()}
+    }
+}
+
+impl Matcher {
 	fn process_lim(&mut self, mut o : order::Order) {
         o = self.common_processing(o);
         if o.current_qty() != 0 {
