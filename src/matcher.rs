@@ -24,6 +24,21 @@ impl Matcher {
     }
 }
 
+fn choose_prices(lhs: &order::Order, rhs: &order::Order) -> (u64, u64) {
+    if lhs.side() == order::Side::Buy {
+        return (lhs.price(), rhs.price());
+    } else {
+        return (rhs.price(), lhs.price());
+    }
+}
+
+fn opposite_side(side: order::Side) -> order::Side {
+    if side == order::Side::Buy {
+        return order::Side::Sell;
+    }
+    return order::Side::Buy;
+}
+
 impl Matcher {
     fn process_lim(&mut self, mut o: order::Order) {
         o = self.common_processing(o);
@@ -38,12 +53,6 @@ impl Matcher {
     fn process_fok(&mut self, o: order::Order) {
         self.fok_processing(o);
     }
-    fn opposite_side(&self, side: order::Side) -> order::Side {
-        if side == order::Side::Buy {
-            return order::Side::Sell;
-        }
-        return order::Side::Buy;
-    }
     fn orders_match(&self, lhs: &order::Order, rhs: &order::Order) -> MatchResult {
         let lhs_side = lhs.side();
         let rhs_side = rhs.side();
@@ -53,14 +62,7 @@ impl Matcher {
         if lhs.user_id() == rhs.user_id() {
             return MatchResult::SameUser;
         }
-        let (mut a, mut b) = (0, 0);
-        if lhs_side == order::Side::Buy {
-            a = lhs.price();
-            b = rhs.price();
-        } else {
-            a = rhs.price();
-            b = lhs.price();
-        }
+        let (a, b) = choose_prices(lhs, rhs);
         if a >= b {
             return MatchResult::Ok;
         }
@@ -76,7 +78,7 @@ impl Matcher {
     }
     fn common_processing(&mut self, mut o: order::Order) -> order::Order {
         let mut orders_to_recover: VecDeque<order::Order> = VecDeque::new();
-        let o_side = self.opposite_side(o.side());
+        let o_side = opposite_side(o.side());
         loop {
             let opposite_order = self.g.pop(o_side);
             if opposite_order.is_none() {
@@ -117,7 +119,7 @@ impl Matcher {
     }
     fn fok_processing(&mut self, mut o: order::Order) -> order::Order {
         let mut orders_to_recover: VecDeque<order::Order> = VecDeque::new();
-        let o_side = self.opposite_side(o.side());
+        let o_side = opposite_side(o.side());
         let mut pop_count = 0;
         let mut number_to_reduce = 0;
         loop {
