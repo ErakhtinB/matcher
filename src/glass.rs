@@ -40,22 +40,17 @@ impl Glass {
     }
 
     pub fn pop(&mut self, side: order::Side) -> Option<order::Order> {
-        let q = self.get_queue(side);
-        let res = q.pop();
-        if res.is_some() {
-            let (i, _p) = res.unwrap();
-            return Some(i);
+        if let Some(res) = self.get_queue(side).pop() {
+            return Some(res.0);
         }
-        None
+        return None;
     }
 
     pub fn peek_mut(&mut self, side: order::Side) -> Option<&mut order::Order> {
-        let q = self.get_queue(side);
-        let res = q.peek_mut();
-        if res.is_some() {
-            return Some(res.unwrap().0);
+        if let Some(res) = self.get_queue(side).peek_mut() {
+            return Some(res.0);
         }
-        None
+        return None;
     }
 
     pub fn push(&mut self, o: order::Order) {
