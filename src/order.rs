@@ -1,4 +1,5 @@
 use std::hash::{Hash, Hasher};
+
 use strum::Display;
 use uuid::Uuid;
 
@@ -83,12 +84,11 @@ impl Order {
         return self.user_id;
     }
 
-    pub fn reduce_quantity(&mut self, qty: u64) -> Option<u64> {
+    pub fn reduce_quantity(&mut self, qty: u64) {
         if self.current_qty < qty {
-            None
+            panic!("Trying to reduce {}, but only {} is avaliable", qty, self.current_qty())
         } else {
             self.current_qty -= qty;
-            Some(self.current_qty)
         }
     }
 
