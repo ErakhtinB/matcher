@@ -59,7 +59,7 @@ impl Order {
 
 impl Order {
     pub fn print_due_external_event(&self, event: ExternalEvent) {
-        print!("{};", event);
+        print!("{},", event);
         self.print_order_info();
     }
 
@@ -93,7 +93,7 @@ impl Order {
     }
 
     fn print_due_inernal_event(&self, event: InternalEvent) {
-        print!("{};", event);
+        print!("{},", event);
         self.print_order_info();
     }
 

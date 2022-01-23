@@ -33,17 +33,18 @@ pub struct Glass {
 
 impl Glass {
     fn get_queue(&mut self, side: order::Side) -> &mut PriorityQueue<order::Order, PricePriority> {
-        if side == order::Side::Buy {
-            return &mut self.buy_queue;
+        match side {
+            order::Side::Buy => return &mut self.buy_queue,
+            order::Side::Sell => return &mut self.sell_queue,
         }
-        return &mut self.sell_queue;
     }
 
     pub fn pop(&mut self, side: order::Side) -> Option<order::Order> {
         if let Some(res) = self.get_queue(side).pop() {
             return Some(res.0);
+        } else {
+            return None;
         }
-        return None;
     }
 
     pub fn peek_mut(&mut self, side: order::Side) -> Option<&mut order::Order> {
@@ -55,14 +56,10 @@ impl Glass {
 
     pub fn push(&mut self, o: order::Order) {
         let side = o.side();
-        let q = self.get_queue(side);
-        let price = o.price();
-        q.push(
-            o,
-            PricePriority {
-                price: price,
-                side: side,
-            },
-        );
+        let pp = PricePriority {
+            price: o.price(),
+            side: side,
+        };
+        self.get_queue(side).push(o, pp);
     }
 }
