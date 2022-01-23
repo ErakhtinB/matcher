@@ -1,10 +1,10 @@
-extern crate matcher;
 extern crate csv;
+extern crate matcher;
 
-use std::env;
 use csv::Reader;
-use std::error::Error;
 use serde::Deserialize;
+use std::env;
+use std::error::Error;
 
 #[derive(Debug, Deserialize)]
 struct OrderBuilder {
@@ -12,7 +12,7 @@ struct OrderBuilder {
     side: matcher::order::Side,
     price: u64,
     initial_qty: u64,
-    user_id: u64
+    user_id: u64,
 }
 
 fn routine(path: &str) -> Result<(), Box<dyn Error>> {
@@ -25,7 +25,8 @@ fn routine(path: &str) -> Result<(), Box<dyn Error>> {
             record.side,
             record.price,
             record.initial_qty,
-            record.user_id));
+            record.user_id,
+        ));
     }
     Ok(())
 }

@@ -1,6 +1,6 @@
-use uuid::Uuid;
 use std::hash::{Hash, Hasher};
 use strum::Display;
+use uuid::Uuid;
 
 use serde::Deserialize;
 
@@ -38,11 +38,22 @@ pub struct Order {
 }
 
 impl Order {
-    pub fn new(_order_type: OrderType, _side : Side, _price : u64,
-            _initial_qty : u64, _user_id : u64) -> Order {
-                Order{internal_id : Uuid::new_v4(), order_type: _order_type, side : _side,
-                    price : _price, initial_qty : _initial_qty, current_qty : _initial_qty,
-                    user_id : _user_id}
+    pub fn new(
+        _order_type: OrderType,
+        _side: Side,
+        _price: u64,
+        _initial_qty: u64,
+        _user_id: u64,
+    ) -> Order {
+        Order {
+            internal_id: Uuid::new_v4(),
+            order_type: _order_type,
+            side: _side,
+            price: _price,
+            initial_qty: _initial_qty,
+            current_qty: _initial_qty,
+            user_id: _user_id,
+        }
     }
 }
 
@@ -75,8 +86,7 @@ impl Order {
     pub fn reduce_quantity(&mut self, qty: u64) -> Option<u64> {
         if self.current_qty < qty {
             None
-        }
-        else {
+        } else {
             self.current_qty -= qty;
             Some(self.current_qty)
         }
@@ -88,12 +98,10 @@ impl Order {
     }
 
     fn print_order_info(&self) {
-        println!("{},{},{},{},{}",
-        self.order_type,
-        self.side,
-        self.price,
-        self.initial_qty,
-        self.user_id);
+        println!(
+            "{},{},{},{},{}",
+            self.order_type, self.side, self.price, self.initial_qty, self.user_id
+        );
     }
 }
 
@@ -101,20 +109,21 @@ impl Drop for Order {
     fn drop(&mut self) {
         let const_self = &(*self);
         match const_self.order_type {
-            OrderType::Ioc | OrderType::Lim => if const_self.current_qty == 0 {
-                const_self.print_due_inernal_event(InternalEvent::Executed)
+            OrderType::Ioc | OrderType::Lim => {
+                if const_self.current_qty == 0 {
+                    const_self.print_due_inernal_event(InternalEvent::Executed)
+                } else if const_self.current_qty < const_self.initial_qty {
+                    const_self.print_due_inernal_event(InternalEvent::PartiallyExecuted)
+                } else {
+                    const_self.print_due_inernal_event(InternalEvent::Canceled)
+                }
             }
-            else if const_self.current_qty < const_self.initial_qty {
-                const_self.print_due_inernal_event(InternalEvent::PartiallyExecuted)
-            }
-            else {
-                const_self.print_due_inernal_event(InternalEvent::Canceled)
-            },
-            OrderType::Fok => if const_self.current_qty != 0 {
-                const_self.print_due_inernal_event(InternalEvent::Canceled)
-            }
-            else {
-                const_self.print_due_inernal_event(InternalEvent::Executed)
+            OrderType::Fok => {
+                if const_self.current_qty != 0 {
+                    const_self.print_due_inernal_event(InternalEvent::Canceled)
+                } else {
+                    const_self.print_due_inernal_event(InternalEvent::Executed)
+                }
             }
         }
     }

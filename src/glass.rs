@@ -5,8 +5,8 @@ use crate::order;
 
 #[derive(Eq, PartialEq)]
 struct PricePriority {
-    price : u64,
-    side : order::Side,
+    price: u64,
+    side: order::Side,
 }
 
 impl PartialOrd for PricePriority {
@@ -44,16 +44,21 @@ impl Glass {
         let res = q.pop();
         if res.is_some() {
             let (i, _p) = res.unwrap();
-            return Some(i)
+            return Some(i);
         }
         None
     }
 
-    pub fn push(&mut self, o : order::Order) {
+    pub fn push(&mut self, o: order::Order) {
         let side = o.side();
         let q = self.get_queue(side);
         let price = o.price();
-        q.push(o, PricePriority{price : price, side : side});
+        q.push(
+            o,
+            PricePriority {
+                price: price,
+                side: side,
+            },
+        );
     }
-
 }
