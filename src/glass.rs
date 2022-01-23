@@ -49,6 +49,15 @@ impl Glass {
         None
     }
 
+    pub fn peek_mut(&mut self, side: order::Side) -> Option<&mut order::Order> {
+        let q = self.get_queue(side);
+        let res = q.peek_mut();
+        if res.is_some() {
+            return Some(res.unwrap().0);
+        }
+        None
+    }
+
     pub fn push(&mut self, o: order::Order) {
         let side = o.side();
         let q = self.get_queue(side);

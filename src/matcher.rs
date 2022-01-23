@@ -39,6 +39,22 @@ fn opposite_side(side: order::Side) -> order::Side {
     return order::Side::Buy;
 }
 
+fn orders_match(lhs: &order::Order, rhs: &order::Order) -> MatchResult {
+    let lhs_side = lhs.side();
+    let rhs_side = rhs.side();
+    if lhs_side == rhs_side {
+        return MatchResult::SameSide;
+    }
+    if lhs.user_id() == rhs.user_id() {
+        return MatchResult::SameUser;
+    }
+    let (a, b) = choose_prices(lhs, rhs);
+    if a >= b {
+        return MatchResult::Ok;
+    }
+    return MatchResult::Discrepancy;
+}
+
 impl Matcher {
     fn process_lim(&mut self, mut o: order::Order) {
         o = self.common_processing(o);
@@ -53,21 +69,6 @@ impl Matcher {
     fn process_fok(&mut self, o: order::Order) {
         self.fok_processing(o);
     }
-    fn orders_match(&self, lhs: &order::Order, rhs: &order::Order) -> MatchResult {
-        let lhs_side = lhs.side();
-        let rhs_side = rhs.side();
-        if lhs_side == rhs_side {
-            return MatchResult::SameSide;
-        }
-        if lhs.user_id() == rhs.user_id() {
-            return MatchResult::SameUser;
-        }
-        let (a, b) = choose_prices(lhs, rhs);
-        if a >= b {
-            return MatchResult::Ok;
-        }
-        return MatchResult::Discrepancy;
-    }
     pub fn proceed_record(&mut self, o: order::Order) {
         o.print_due_external_event(order::ExternalEvent::Accepted);
         match o.order_type() {
@@ -77,45 +78,29 @@ impl Matcher {
         }
     }
     fn common_processing(&mut self, mut o: order::Order) -> order::Order {
-        let mut orders_to_recover: VecDeque<order::Order> = VecDeque::new();
         let o_side = opposite_side(o.side());
-        loop {
-            let opposite_order = self.g.pop(o_side);
-            if opposite_order.is_none() {
-                break;
-            }
-            let mut opposite_order = opposite_order.unwrap();
-            match self.orders_match(&o, &opposite_order) {
+        while let Some(opposite_order) = self.g.peek_mut(o_side) {
+            match orders_match(&o, &opposite_order) {
                 MatchResult::Ok => {
                     let order_current_qty = o.current_qty();
                     let opposite_order_current_qty = opposite_order.current_qty();
                     if order_current_qty > opposite_order_current_qty {
                         o.reduce_quantity(opposite_order_current_qty);
+                        self.g.pop(o_side);
                     } else {
                         opposite_order.reduce_quantity(order_current_qty);
                         o.reduce_quantity(order_current_qty);
-                        if opposite_order.current_qty() != 0 {
-                            orders_to_recover.push_back(opposite_order);
+                        if opposite_order.current_qty() == 0 {
+                            self.g.pop(o_side);
                         }
                         break;
                     }
                 }
                 MatchResult::SameSide => panic!("Orders of the same side"),
-                MatchResult::SameUser => orders_to_recover.push_back(opposite_order),
-                MatchResult::Discrepancy => {
-                    orders_to_recover.push_back(opposite_order);
-                    break; // put opposite order back, break, queue order
-                }
+                MatchResult::SameUser | MatchResult::Discrepancy => break,
             }
         }
-        loop {
-            let element = orders_to_recover.pop_back();
-            if element.is_none() {
-                break;
-            }
-            self.g.push(element.unwrap());
-        }
-        o
+        return o;
     }
     fn fok_processing(&mut self, mut o: order::Order) -> order::Order {
         let mut orders_to_recover: VecDeque<order::Order> = VecDeque::new();
@@ -128,7 +113,7 @@ impl Matcher {
                 break;
             }
             let opposite_order = opposite_order.unwrap();
-            match self.orders_match(&o, &opposite_order) {
+            match orders_match(&o, &opposite_order) {
                 MatchResult::Ok => {
                     let order_current_qty = o.current_qty();
                     let opposite_order_current_qty = opposite_order.current_qty();
