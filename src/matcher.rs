@@ -1,11 +1,11 @@
 use std::collections::VecDeque;
 
-pub mod glass;
+pub mod book;
 pub mod order;
 
 #[derive(Default)]
 pub struct Matcher {
-    g: glass::Glass,
+    g: book::Book,
     orders_to_recover: VecDeque<order::Order>,
 }
 

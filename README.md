@@ -7,7 +7,7 @@ The order has the following properties:
     Type (see below)
 Applications are of three types:
     Limit - executed in full or in part, and the remainder is queued for execution. If it is not possible to execute at the time of receipt, then it is queued in its entirety.
-    Fill or kill - execute all or nothing. If there is a total number of applications in the queue (glass) with a price that satisfies the requested one, then such an application is satisfied. Otherwise, it is canceled (not added to the queue). Such an application cannot be partially executed.
+    Fill or kill - execute all or nothing. If there is a total number of applications in the queue (book) with a price that satisfies the requested one, then such an application is satisfied. Otherwise, it is canceled (not added to the queue). Such an application cannot be partially executed.
 Immediate or cancel - any part of such an order is executed, and the rest is canceled (not queued). Thus, incoming and passive applications are distinguished. Incoming - currently being serviced. Passive - previously serviced and queued for execution. Only Limit are passive. An incoming application can be reduced to several passive ones. Orders from one user are not reduced to each other.
 The system must be able to accept applications as input (file) and output (stdout) the results of the match - queuing, execution, cancellation.
 

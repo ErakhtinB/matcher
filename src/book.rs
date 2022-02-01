@@ -26,12 +26,12 @@ impl Ord for PricePriority {
 }
 
 #[derive(Default)]
-pub struct Glass {
+pub struct Book {
     buy_queue: PriorityQueue<order::Order, PricePriority>,
     sell_queue: PriorityQueue<order::Order, PricePriority>,
 }
 
-impl Glass {
+impl Book {
     fn get_queue(&mut self, side: order::Side) -> &mut PriorityQueue<order::Order, PricePriority> {
         match side {
             order::Side::Buy => return &mut self.buy_queue,
