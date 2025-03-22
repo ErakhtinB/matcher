@@ -163,3 +163,124 @@ impl Matcher {
         return o;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_limit_order_matching() {
+        // Create a matcher
+        let mut matcher = Matcher::new();
+
+        // Add a buy limit order
+        let buy_order = order::Order::new(
+            order::OrderType::Lim,
+            order::Side::Buy,
+            100, // price
+            10,  // quantity
+            1,   // user_id
+        );
+
+        // Add a matching sell limit order
+        let sell_order = order::Order::new(
+            order::OrderType::Lim,
+            order::Side::Sell,
+            95, // price (lower than buy price, so should match)
+            5,  // quantity (half of buy quantity)
+            2,  // user_id
+        );
+
+        // Process the orders
+        matcher.proceed_record(buy_order);
+        matcher.proceed_record(sell_order);
+
+        // The buy order should be partially filled and remain in the book
+        // The sell order should be fully executed
+
+        // Add another sell order to match remaining buy quantity
+        let sell_order2 = order::Order::new(
+            order::OrderType::Lim,
+            order::Side::Sell,
+            98, // price (still lower than buy price)
+            5,  // quantity (remaining buy quantity)
+            3,  // user_id
+        );
+
+        matcher.proceed_record(sell_order2);
+
+        // Now the buy order should be fully executed and removed from the book
+    }
+
+    #[test]
+    fn test_fok_order_matching() {
+        // Create a matcher
+        let mut matcher = Matcher::new();
+
+        // Add a buy limit order to the book
+        let buy_limit = order::Order::new(
+            order::OrderType::Lim,
+            order::Side::Buy,
+            100, // price
+            10,  // quantity
+            1,   // user_id
+        );
+        matcher.proceed_record(buy_limit);
+
+        // Try to match with a FOK sell order that's too large to fill completely
+        let large_fok_sell = order::Order::new(
+            order::OrderType::Fok,
+            order::Side::Sell,
+            95, // price (acceptable)
+            15, // quantity (more than available)
+            2,  // user_id
+        );
+
+        // This should be canceled
+        matcher.proceed_record(large_fok_sell);
+
+        // Try a FOK sell that can be filled
+        let matching_fok_sell = order::Order::new(
+            order::OrderType::Fok,
+            order::Side::Sell,
+            95, // price
+            10, // quantity (exact match)
+            3,  // user_id
+        );
+
+        // This should execute
+        matcher.proceed_record(matching_fok_sell);
+
+        // The buy limit order should now be fully executed
+    }
+
+    #[test]
+    fn test_ioc_order_matching() {
+        // Create a matcher
+        let mut matcher = Matcher::new();
+
+        // Add a buy limit order to the book
+        let buy_limit = order::Order::new(
+            order::OrderType::Lim,
+            order::Side::Buy,
+            100, // price
+            10,  // quantity
+            1,   // user_id
+        );
+        matcher.proceed_record(buy_limit);
+
+        // Match with an IOC sell order
+        let ioc_sell = order::Order::new(
+            order::OrderType::Ioc,
+            order::Side::Sell,
+            95, // price (acceptable)
+            15, // quantity (more than available)
+            2,  // user_id
+        );
+
+        // Should partially execute (10 units) and cancel the rest (5 units)
+        matcher.proceed_record(ioc_sell);
+
+        // The buy limit order should now be fully executed
+    }
+}

@@ -27,7 +27,7 @@ enum InternalEvent {
     Executed,
     PartiallyExecuted,
 }
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Order {
     internal_id: Uuid,
     order_type: OrderType,
@@ -134,10 +134,18 @@ impl Drop for Order {
 }
 
 impl PartialEq for Order {
-    fn eq(&self, other: &Order) -> bool {
-        self.internal_id == other.internal_id
+    fn eq(&self, other: &Self) -> bool {
+        // Two orders are equal if they have the same order type, side, price,
+        // initial quantity and user ID. We ignore the internal ID and current quantity.
+        self.order_type == other.order_type
+            && self.side == other.side
+            && self.price == other.price
+            && self.initial_qty == other.initial_qty
+            && self.user_id == other.user_id
     }
 }
+
+impl Eq for Order {}
 
 impl Hash for Order {
     fn hash<H: Hasher>(&self, state: &mut H) {
@@ -145,4 +153,40 @@ impl Hash for Order {
     }
 }
 
-impl Eq for Order {}
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_order_creation() {
+        let order = Order::new(OrderType::Lim, Side::Buy, 100, 10, 1);
+        assert_eq!(order.order_type(), OrderType::Lim);
+        assert_eq!(order.side(), Side::Buy);
+        assert_eq!(order.price(), 100);
+        assert_eq!(order.initial_qty, 10);
+        assert_eq!(order.current_qty(), 10);
+        assert_eq!(order.user_id(), 1);
+    }
+
+    #[test]
+    fn test_reduce_quantity() {
+        let mut order = Order::new(OrderType::Lim, Side::Buy, 100, 10, 1);
+        order.reduce_quantity(3);
+        assert_eq!(order.current_qty(), 7);
+        order.reduce_quantity(7);
+        assert_eq!(order.current_qty(), 0);
+    }
+
+    #[test]
+    fn test_eq_implementation() {
+        let order1 = Order::new(OrderType::Lim, Side::Buy, 100, 10, 1);
+        let order2 = Order::new(OrderType::Lim, Side::Buy, 100, 10, 1);
+
+        // Despite having different UUIDs, they should be considered equal
+        // because Eq is implemented based on fields other than internal_id
+        assert_eq!(order1, order2);
+
+        let order3 = Order::new(OrderType::Fok, Side::Buy, 100, 10, 1);
+        assert_ne!(order1, order3);
+    }
+}
