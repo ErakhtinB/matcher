@@ -11,6 +11,10 @@ path = "src/matcher.rs"
 name = "matcher"
 path = "src/main.rs"
 
+[[bench]]
+name = "matcher_benchmarks"
+harness = false
+
 [dependencies]
 criterion = "0.5"
 strum = { version = "0.26", features = ["derive"] }
